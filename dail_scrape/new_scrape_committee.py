@@ -171,20 +171,23 @@ df_holder2.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/commit
 
 
 df_holder3 = []
-num_list3 = range(len(num_list) + len(num_list2) + 1, 10000)
+num_list3 = range(all_scraped[-1]+1, 15000)
 for i in num_list3: 
-    out = scrape_committee_func(start_num = i, end_num = i+1)
+    out = scrape_committee_func(num = i)
     df_holder3.append(out)
+    all_scraped.append(i)
 df_holder3 = pd.concat(df_holder3)
 df_holder3["date"] = replace_month_names(df_holder3["date"])
 df_holder3.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_3.csv")
 
     
 df_holder4 = []
-num_list4 = range(len(num_list) + len(num_list2) + len(num_list3) + 1, 20000)
+num_list4 = range(all_scraped[-1] + 1, 17500)
 for i in num_list4: 
-    out = scrape_committee_func(start_num = i, end_num = i+1)
+    print(i)
+    out = scrape_committee_func(num = i)
     df_holder4.append(out)
+    all_scraped.append(i)
 df_holder4_df = pd.concat(df_holder4)
 df_holder4_df["date"] = replace_month_names(df_holder4_df["date"])
 df_holder4_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_4.csv")
