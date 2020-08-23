@@ -182,48 +182,97 @@ df_holder3.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/commit
 
     
 df_holder4 = []
-num_list4 = range(all_scraped[-1] + 1, 17500)
+all_scraped4 = []
+num_list4 = range(10822 + 1, 17500)
 for i in num_list4: 
     print(i)
     out = scrape_committee_func(num = i)
     df_holder4.append(out)
-    all_scraped.append(i)
+    all_scraped4.append(i)
 df_holder4_df = pd.concat(df_holder4)
 df_holder4_df["date"] = replace_month_names(df_holder4_df["date"])
 df_holder4_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_4.csv")
 
-
-#note that the link for all_debates 14611:14613 appears to be down, for some reason
-#also note i changed the function between these two iterations here 
-all_scraped = []
+#something's going on with the appending of i to all_scraped - the index is not exactly right, 
+#but not so far off that it can't be fixed manually (hence the )
 df_holder5 = []
-num_list5 = range(len(num_list) + len(num_list2) + len(num_list3) + len(df_holder4) + 1, 16000)
+all_scraped5 = []
+num_list5 = range(all_scraped4[-1] + 10, 20000)
 df_holder5_df = pd.DataFrame()
-while True: 
-    try: 
-        for i in num_list5: 
-            print(i)
-            out = scrape_committee_func(num = i)
-            df_holder5.append(out)
-            all_scraped.append(i)
-    except IndexError or ValueError:
-        break
+for i in num_list5: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder5.append(out)
+    all_scraped5.append(i)
 df_holder5_df = pd.concat(df_holder5)
 df_holder5_df["date"] = replace_month_names(df_holder5_df["date"])
 df_holder5_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_5.csv")
 
-#link for all_debates[14664:14667] is also down 
+#link for all_debates_clean[18535:18539] is also down 
+#corresponding to committee on european scrutiny/european affairs- 
+#this was also down above, as well 
+all_scraped6 = []
 df_holder6 = []
-num_list6 = range(all_scraped[-1] +4 , 25000)
-while True: 
-    try: 
-        for i in num_list6: 
-            print(i)
-            out = scrape_committee_func(start_num = i, end_num = i+1)
-            df_holder6.append(out)
-            all_scraped.append(i)
-    except IndexError:
-        break
+num_list6 = range(all_scraped5[-1] +4 , 25000)
+for i in num_list6: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder6.append(out)
+    all_scraped6.append(i)
 df_holder6_df = pd.concat(df_holder6)
 df_holder6_df["date"] = replace_month_names(df_holder6_df["date"])
 df_holder6_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_6.csv")
+
+
+
+all_scraped7 = []
+df_holder7 = []
+num_list7 = range(all_scraped6[-1] +1 , 30000)
+for i in num_list7: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder7.append(out)
+    all_scraped7.append(i)
+df_holder7_df = pd.concat(df_holder7)
+df_holder7_df["date"] = replace_month_names(df_holder7_df["date"])
+df_holder7_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_7.csv")
+
+
+all_scraped8 = []
+df_holder8 = []
+num_list8 = range(all_scraped7[-1] + 1 , len(all_debates_clean) + 1)
+for i in num_list8: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder8.append(out)
+    all_scraped8.append(i)
+df_holder8_df = pd.concat(df_holder8)
+df_holder8_df["date"] = replace_month_names(df_holder8_df["date"])
+df_holder8_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_8.csv")
+
+
+#link for all_debates_clean[33591:33595] is down: joint committee on state-sponsored bodies 
+all_scraped9 = []
+df_holder9 = []
+num_list9 = range(all_scraped8[-1] + 5 , len(all_debates_clean) + 1)
+for i in num_list9: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder9.append(out)
+    all_scraped9.append(i)
+df_holder9_df = pd.concat(df_holder9)
+df_holder9_df["date"] = replace_month_names(df_holder9_df["date"])
+df_holder9_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_9.csv")
+
+
+all_scraped10 = []
+df_holder10 = []
+num_list10 = range(all_scraped9[-1] + 1 , len(all_debates_clean) + 1)
+for i in num_list10: 
+    print(i)
+    out = scrape_committee_func(num = i)
+    df_holder10.append(out)
+    all_scraped10.append(i)
+df_holder10_df = pd.concat(df_holder10)
+df_holder10_df["date"] = replace_month_names(df_holder10_df["date"])
+df_holder10_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/committee_speeches_10.csv")
