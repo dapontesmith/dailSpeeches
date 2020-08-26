@@ -21,13 +21,15 @@ import pandas as pd
 from datetime import datetime
 
 #make list of urls to loop through - this follows the structure of te site
+#this is faster (i think) than the method used in the scrape_dail_func! 
 urls = []
 for i in range(1, 85): 
     url_to_append = "page=" + str(i) + "&"
     urls.append("https://www.oireachtas.ie/en/debates/find/?" + url_to_append + "datePeriod=all&debateType=dail&resultsPerPage=100")
 urls.insert(0, "https://www.oireachtas.ie/en/debates/find/?datePeriod=all&debateType=dail&resultsPerPage=100")
 
-#get all urls for all debate pages, so we can loop through them (which might be easier)
+
+#now, get list of all individual debate section urls 
 all_debates = []
 for page in urls: 
     print(page)
@@ -45,6 +47,8 @@ for page in urls:
 #remove urls having to do with "select_committee_on_members'_interests_of_seanad_éireann", 
     #since the links for all of those appear to be non-functional at the moment 
 all_debates_clean = []
+#remove urls for subsections of debates, since those already get scraped 
+#and including them would double-scrape stuff 
 for element in all_debates: 
     if "#" not in element: 
         all_debates_clean.append(element)
@@ -59,6 +63,7 @@ def scrape_question(number):
     print(all_debates_clean[number])   
     date = []
     debate_date_text_holder = []
+    #define url and do beautiful soup protocol
     url_to_use = "https://www.oireachtas.ie"  + all_debates_clean[number]
     r = requests.get(url_to_use)
     text = r.text
@@ -69,17 +74,17 @@ def scrape_question(number):
     for j in debate_date: 
         date.append(j.text)
     date = date[0].split(" - ")[1]
-    #get committee name
+    #define empty lists 
     text_holder = []  
     text_url_holder = []
     speaker_suffixes = []
-    #find all speeches and links 
+    #find all questions and links 
     holder = soup.find_all("div", {"class":"question"})
     for div in holder: 
         t = div.find_all("a", href = True)
         #get each hyperlink that corresponds to a speech
         #this gets us only as many speeches as name hyperlinks
-        #if someone doesn't have a hyperlink (extrmeely rare), their speech is not included 
+        #if someone doesn't have a hyperlink (extrmeely rare for TDs), their speech is not included 
         for a in t: 
             if not "#" in a["href"]: 
             #put together speech and url 
@@ -153,9 +158,10 @@ def replace_month_names(column):
     
 #run function
 df_holder = []
-num_list = range(1, 500)
+num_list = range(1, 2000)
 all_scraped = []
 for i in num_list: 
+    print(i)
     out = scrape_question(i)
     df_holder.append(out)
     all_scraped.append(i)
@@ -166,9 +172,10 @@ df_holder.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questio
 
 
 df_holder2 = []
-num_list2 = range(all_scraped[-1]+1, 2000)
+num_list2 = range(all_scraped[-1]+1, 2500)
 all_scraped2 = []
 for i in num_list2: 
+    print(i)
     out = scrape_question(i)
     df_holder2.append(out)
     all_scraped2.append(i)
@@ -180,7 +187,7 @@ df_holder2.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questi
 
 
 df_holder3 = []
-num_list3 = range(all_scraped2[-1]+1, 10000)
+num_list3 = range(677, 4000)
 all_scraped3 = []
 for i in num_list3: 
     print(i)
@@ -194,7 +201,7 @@ df_holder3.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questi
 
 
 df_holder4 = []
-num_list4 = range(all_scraped3[-1]+1, 20000)
+num_list4 = range(all_scraped3[-1]+1, 8000)
 all_scraped4 = []
 for i in num_list4: 
     print(i)
@@ -208,3 +215,69 @@ df_holder4.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questi
 
 
 
+df_holder5 = []
+num_list5= range(all_scraped4[-1]+1, 20000)
+all_scraped5 = []
+for i in num_list5: 
+    print(i)
+    out = scrape_question(i)
+    df_holder5.append(out)
+    all_scraped5.append(i)
+df_holder5_df = pd.concat(df_holder5)
+df_holder5_df["date"] = replace_month_names(df_holder5_df["date"])
+df_holder5_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questions5.csv")
+#note that the link for /en/debates/debate/dail/2010-09-29/49 is down - rescrape later 
+
+
+df_holder6 = []
+num_list6= range(all_scraped5[-1]+2, 25000)
+all_scraped6 = []
+for i in num_list6: 
+    print(i)
+    out = scrape_question(i)
+    df_holder6.append(out)
+    all_scraped6.append(i)
+df_holder6_df = pd.concat(df_holder6)
+df_holder6_df["date"] = replace_month_names(df_holder6_df["date"])
+df_holder6_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questions6.csv")
+
+
+
+df_holder7 = []
+num_list7= range(all_scraped6[-1]+1, 35000)
+all_scraped7 = []
+for i in num_list7: 
+    print(i)
+    out = scrape_question(i)
+    df_holder7.append(out)
+    all_scraped7.append(i)
+df_holder7_df = pd.concat(df_holder7)
+df_holder7_df["date"] = replace_month_names(df_holder7_df["date"])
+df_holder7_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questions7.csv")
+
+
+df_holder8 = []
+num_list8= range(all_scraped7[-1]+1, 50900)
+all_scraped8 = []
+for i in num_list8: 
+    print(i)
+    out = scrape_question(i)
+    df_holder8.append(out)
+    all_scraped8.append(i)
+df_holder8_df = pd.concat(df_holder8)
+df_holder8_df["date"] = replace_month_names(df_holder8_df["date"])
+df_holder8_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questions8.csv")
+
+
+
+df_holder9 = []
+num_list9= range(all_scraped8[-1]+1, 70000)
+all_scraped9 = []
+for i in num_list9: 
+    print(i)
+    out = scrape_question(i)
+    df_holder9.append(out)
+    all_scraped9.append(i)
+df_holder9_df = pd.concat(df_holder9)
+df_holder9_df["date"] = replace_month_names(df_holder9_df["date"])
+df_holder9_df.to_csv("C:/Users/dapon/Dropbox/Smith-Daponte-Smith/dail_scrape/questions9.csv")
