@@ -6,12 +6,18 @@ setwd("C:/Users/dapon/Dropbox/Smith-Daponte-Smith")
 #load and prepare for analysis - same as in "create_index" file 
 finaljoin <- readRDS("speeches/speeches_1997_2019_FINAL.Rdata") 
 places_full <- readRDS("constituencies/constituencies_placenames_matched.Rdata")
+full1997 <- readRDS("speeches/elec_data_1997_with_hh_prop_distinct2.Rdata")
+full2002 <- readRDS("speeches/elec_data_2002_with_hh_prop_distinct2.Rdata")
+full2011 <- readRDS("speeches/elec_data_2011_with_hh_prop_distinct2.Rdata")
+full2016 <- readRDS("speeches/elec_data_2016_with_hh_prop_distinct2.Rdata")
+
+
 #define types of locations
 location_types <- c("town","civil parish","electoral district","population centre",
                     "administrative county","city","county","sub-townland","island or archipelago",
-                    "barony","canal","port","junction, interchange","field","quay, pier, wharf",
-                    "house","river","wood","man-made feature", "monument",
-                    "mountain or mountain range", "locality","valley","feature")
+                    "barony","canal") # ,"port","junction, interchange","field","quay, pier, wharf",
+                    #"house","river","wood","man-made feature", "monument",
+                    #"mountain or mountain range", "locality","valley","feature")
 #make county names 
 places_full$name <- ifelse(places_full$location_type == "county", 
                            paste("County", places_full$name), places_full$name)
@@ -59,102 +65,96 @@ speeches2016 <- finaljoin %>% filter(date > as.Date("2016-02-26") & date <= as.D
 #need to define a function that codes a speech as "local" if it contains a placename 
 
 
-speeches_data <- speeches1997
-places_data <- places1995
-constit_year <- places_full$const95
-speakers <- unique(speeches_data$name_clean)
-local_holder <- NULL
+code_speeches_func <- function(speeches_data, places_data, 
+                               constit_year){ 
 
-#loop through speakers 
-for(j in 1:length(speakers[1:5])){
-  print(j)
-  #define speeches 
-  speeches_speaker <- speeches_data$text[speeches_data$name_clean == speakers[j]]
-  #make holder matrix, nrow = speakers, ncol = speeches
-  #loop through speeches given by speaker
-  for(i in 1:length(speeches_speaker)){
-    #mae holder vector, length = number of speeches
-    holder <- NULL
-    is_local <- NULL
-    #getdistrict
-    constituency <- unique(speeches_data$district[speeches_data$name_clean == speakers[j]])
-    #get places in the constit
-    places_in_constit <- unique(places_data$name[constit_year == constituency])
-    places_in_constit <- places_in_constit[!(is.na(places_in_constit))]
-    appears <- NULL
-    for(k in 1:length(places_in_constit)){
-      place_appears <- str_detect(speeches_speaker[i], places_in_constit[k])
-      appears[k] <- place_appears
-      
-    }
-    is_local <- ifelse(appears == TRUE, 1, 0)
-    #loop through place-names 
-    if(sum(is_local) != FALSE){
-      holder[i] <- 1
-    } else {
-      holder[i] <- 0
-    }
-  }
-  local_holder[[j]] <- holder
-  
-}
-
-code_speeches_func <- function(speeches_data, places_data, constit_year){
- 
   speakers <- unique(speeches_data$name_clean)
-  #define matrix in which each row is a place and each column is a speaker
-  holder <- matrix(nrow = nrow(places_data), ncol = length(speakers))
-  #loop to calculate how many times each speaker mentions each place 
+  local_holder <- NULL
+
+  #loop through speakers 
   for(j in 1:length(speakers)){
     print(j)
-    for(i in 1:nrow(places_data)){
-      #sum the number of times a certain speaker mentions a certain place
-      holder[i,j] <- sum(str_count(speeches_data$text[speeches_data$name_clean == speakers[j]], places_data$name[i]))
-    }
-  }
-  #assign places to row names and speakers to column names, matching structure of data 
-  rownames(holder) <- places_data$name
-  colnames(holder) <- speakers
+    #define speeches 
+    speeches_speaker <- speeches_data$text[speeches_data$name_clean == speakers[j]]
+
+    #getdistrict
+    #get places in the constit
+    constituency <- unique(speeches_data$district[speeches_data$name_clean == speakers[j]])
+    places_in_constit <- unique(places_data$name[constit_year == constituency])
+    places_in_constit <- places_in_constit[!(is.na(places_in_constit))]
   
-  #define holder matrix of same dimensions as the holder matrix above 
-  places_district_holder <- matrix(nrow = nrow(places_data), ncol = length(speakers))
-  
-  #this matrix is of 1s and 0s, telling us whether a place is in a speaker's district 
-  for(j in 1:ncol(places_district_holder)){
-    speaker_district <- unique(speeches_data$district[speeches_data$name_clean == colnames(holder)[j]])
-    print(j)
-    for(i in 1:nrow(places_district_holder)){
-      #get speaker district 
-      #get place district
-      places_district <- unique(constit_year[places$name == rownames(holder)[i]])
-      #some places having NA districts or NA speakers, so we skip them 
-      #this is the case for senators who have snuck into the data 
-      if(is.na(places_district) | is.na(speaker_district)){
-        next
-      } else if(places_district == speaker_district){
-        places_district_holder[i,j] <- 1
+    #define holder 
+    is_local <- NULL
+    #loop through speeches given by speaker
+    for(i in 1:length(speeches_speaker)){
+      #mae holder vector, length = number of speeches
+      place_mentioned <- NULL
+    
+      for(k in 1:length(places_in_constit)){
+        place_mentioned[k] <- ifelse(str_detect(speeches_speaker[i], places_in_constit[k]) == TRUE, 1, 0)
+      }
+      #if any element of place_mentioned is TRUE, the speech is local 
+      if(sum(place_mentioned, na.rm = T) != 0){
+        is_local[i] <- 1
       } else {
-        places_district_holder[i,j] <- 0
+        is_local[i] <- 0
       }
     }
+    local_holder[[j]] <- is_local
   }
-  
-  rownames(places_district_holder) <- places_data$name
-  colnames(places_district_holder) <- speakers
-  
-  #multiply matrices element-wise, then sum columns of result to get count of places mentioned in the district
-  #to get total mentions, sum columns of holder 
-  total_mentions <- colSums(holder)
-  
-  #multiply matrices element-wise to get matrix only of within-district mention counts
-  mentions_in_district <- holder * places_district_holder
-  
-  #get total number of mentions in district
-  total_mentions_in_district <- colSums(mentions_in_district)
-  
-  #get within-district proportion of mentions
-  within_district_proportion_mentions <- mentions_in_district / total_mentions_in_district
-  
-  #return holder and places_district_holder
-  return(list(holder, places_district_holder))
+
+#now go through and divide sum of local_holder[[j]] by length of local_holder[[j]]
+#summing the elemnt of holder list gives us proportion of speeches that are local
+  prop_holder <- NULL
+  for(j in 1:length(speakers)){
+    prop_holder[j] <- sum(local_holder[[j]])/length(local_holder[[j]])
+  }
+  out <- data.frame(cbind(unique(speeches_data$name_clean), prop_holder))
 }
+
+
+
+
+#run function on the various datasets 
+prop_speeches_local1997 <- code_speeches_func(speeches_data = speeches1997, 
+                               places_data = places1995, 
+                               constit_year = places1995$const95) %>% 
+  as_tibble()
+prop_speeches_local1997 <- prop_speeches_local1997 %>% 
+  rename("name_clean" = "V1", "prop_speeches_local" = "prop_holder")
+#merge this back in with the full data 
+full1997 <- left_join(full1997, prop_speeches_local1997, by = "name_clean")
+
+prop_speeches_local2002 <- code_speeches_func(speeches_data = speeches2002, 
+                                              places_data = places1998, 
+                                              constit_year = places1998$const98) %>% 
+  as_tibble() %>% 
+  rename("name_clean" = "V1", "prop_speeches_local" = "prop_holder")
+full2002 <- left_join(full2002, prop_speeches_local2002, by = "name_clean")
+
+
+prop_speeches_local2011 <- code_speeches_func(speeches_data = speeches2011, 
+                                              places_data = places2007, 
+                                              constit_year = places2007$const2007) %>% 
+  as_tibble() %>% 
+  rename("name_clean" = "V1", "prop_speeches_local" = "prop_holder")
+full2011 <- left_join(full2011, prop_speeches_local2011, by = "name_clean")
+
+
+prop_speeches_local2016 <- code_speeches_func(speeches_data = speeches2016, 
+                                              places_data = places2013, 
+                                              constit_year = places2013$const2013) %>% 
+  as_tibble() %>% 
+  rename("name_clean" = "V1", "prop_speeches_local" = "prop_holder")
+full2016 <- left_join(full2016, prop_speeches_local2016, by = "name_clean")
+
+
+#save data 
+saveRDS(full1997, "speeches/full_elec_data_with_speech_indexes1997.Rdata")
+saveRDS(full2002, "speeches/full_elec_data_with_speech_indexes2002.Rdata")
+saveRDS(full2011, "speeches/full_elec_data_with_speech_indexes2011.Rdata")
+saveRDS(full2016, "speeches/full_elec_data_with_speech_indexes2016.Rdata")
+
+
+
+
